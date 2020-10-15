@@ -105,15 +105,49 @@ Ejercicios
   continuación, una captura de `wavesurfer` en la que se vea con claridad la señal temporal, el contorno de
   potencia y la tasa de cruces por cero, junto con el etiquetado manual de los segmentos.
 
+No se como incluir todo eso en la misma grafica, en el respositorio imagenes tienes unas quantas capturas 
+pero no las que piden.
 
 - A la vista de la gráfica, indique qué valores considera adecuados para las magnitudes siguientes:
 
 	* Incremento del nivel potencia en dB, respecto al nivel correspondiente al silencio inicial, para
 	  estar seguros de que un segmento de señal se corresponde con voz.
-
+Razonar.
 	* Duración mínima razonable de los segmentos de voz y silencio.
-
+Razonar.
 	* ¿Es capaz de sacar alguna conclusión a partir de la evolución de la tasa de cruces por cero?
+
+Responder a esto y mencionar que hemos hecho un programa en Python usando la libreria Matplotlib 
+para hacer la grafica, aquí el codigo.
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+newLines = []
+res_txt = open("/home/josep/Escritorio/PAV/P2/res.txt","r")
+lines = res_txt.readlines()
+for x in range(len(lines)):
+    newLines.append(lines[x].split("\t"))
+    
+newestList = []
+for x in range(len(newLines)):
+    newestList.append(newLines[x][3])
+
+lastesList = []
+for x in range(len(newestList)):
+    lastesList.append(float(newestList[x].replace("\n","")))
+
+plt.plot(lastesList, 'b-', label='Audio P2')
+plt.legend(loc="upper right")
+plt.xlim(0,440)
+plt.ylim(0,3000)
+plt.grid()
+plt.ylabel('ZCR')
+plt.xlabel('Muestras')
+plt.title('ZCR')
+plt.show()
+```
 
 
 ### Desarrollo del detector de actividad vocal
