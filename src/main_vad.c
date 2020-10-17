@@ -5,6 +5,7 @@
 
 #include "vad.h"
 #include "vad_docopt.h"
+#include "pav_analysis.h"
 
 #define DEBUG_VAD 0x1
 
@@ -86,6 +87,12 @@ int main(int argc, char *argv[]) {
 
     /* TODO: print only SILENCE and VOICE labels */
     /* As it is, it prints UNDEF segments but is should be merge to the proper value */
+    if (state == ST_UNDEF){
+        state = last_state;
+    }
+    if (state == ST_UNDEF){
+        state = ST_SILENCE;
+    }
     if (state != last_state) {
       if (t != last_t)
         fprintf(vadfile, "%.5f\t%.5f\t%s\n", last_t * frame_duration, t * frame_duration, state2str(last_state));

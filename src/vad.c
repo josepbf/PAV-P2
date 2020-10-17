@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "vad.h"
+#include "pav_analysis.h"
 
 const float FRAME_TIME = 10.0F; /* in ms. */
 
@@ -28,26 +29,23 @@ typedef struct {
 } Features;
 
 /* 
- * TODO: Delete and use your own features!
+ * DONE: Delete and use your own features!
  */
 
-Features compute_features(const float *x, int N) {
+Features compute_features(const float *x, int N, float rate) {
   /*
    * Input: x[i] : i=0 .... N-1 
    * Ouput: computed features
    */
-  /* 
-   * DELETE and include a call to your own functions
-   *
-   * For the moment, compute random value between 0 and 1 
-   */
   Features feat;
-  feat.zcr = feat.p = feat.am = (float) rand()/RAND_MAX;
+  feat.p = compute_power(x,N);
+  feat.am = compute_am(x,N);
+  feat.zcr = compute_zcr(x,N, rate); /* Implementar després si cal */
   return feat;
 }
 
 /* 
- * TODO: Init the values of vad_data
+ * DONE: Init the values of vad_data
  */
 
 VAD_DATA * vad_open(float rate) {
@@ -55,6 +53,14 @@ VAD_DATA * vad_open(float rate) {
   vad_data->state = ST_INIT;
   vad_data->sampling_rate = rate;
   vad_data->frame_length = rate * FRAME_TIME * 1e-3;
+  vad_data->lastState = ST_INIT;
+  vad_data->alfa0 = 3;
+  vad_data->alfa1 = 4;
+  vad_data->tS = 3;
+  vad_data->tV = 2;
+  vad_data->timer = 0;
+  vad_data->k0 = 0;
+  vad_data->nInit = 11;
   return vad_data;
 }
 
@@ -63,6 +69,16 @@ VAD_STATE vad_close(VAD_DATA *vad_data) {
    * TODO: decide what to do with the last undecided frames
    */
   VAD_STATE state = vad_data->state;
+
+  state = ST_SILENCE;
+  /* Això no millora el resultat
+  if (vad_data->lastState == ST_SILENCE){
+    state = ST_SILENCE;
+  }
+  if (vad_data->lastState == ST_VOICE){
+    state = ST_VOICE;
+  }
+  */
 
   free(vad_data);
   return state;
@@ -73,38 +89,74 @@ unsigned int vad_frame_size(VAD_DATA *vad_data) {
 }
 
 /* 
- * TODO: Implement the Voice Activity Detection 
+ * DONE: Implement the Voice Activity Detection 
  * using a Finite State Automata
  */
 
 VAD_STATE vad(VAD_DATA *vad_data, float *x) {
 
   /* 
-   * TODO: You can change this, using your own features,
+   * DONE: You can change this, using your own features,
    * program finite state automaton, define conditions, etc.
    */
 
-  Features f = compute_features(x, vad_data->frame_length);
+  Features f = compute_features(x, vad_data->frame_length, vad_data->sampling_rate);
   vad_data->last_feature = f.p; /* save feature, in case you want to show */
 
   switch (vad_data->state) {
   case ST_INIT:
-    vad_data->state = ST_SILENCE;
+    vad_data->k0 = vad_data->k0 + pow(10,compute_power(x,vad_data->frame_length)/10);
+    vad_data->timer++;
+    if(vad_data->timer == vad_data->nInit -1){
+      vad_data->k0 = 10*log10((vad_data->k0)/(vad_data->nInit));
+      vad_data->timer = 0;
+      vad_data->state = ST_SILENCE;
+    }
+        
     break;
 
   case ST_SILENCE:
-    if (f.p > 0.95)
-      vad_data->state = ST_VOICE;
+    vad_data->lastState = ST_SILENCE;
+    if (f.p > (vad_data->k0 + vad_data->alfa0)){
+      vad_data->state = ST_UNDEF;
+      vad_data->timer = 0;
+    }
     break;
 
   case ST_VOICE:
-    if (f.p < 0.01)
-      vad_data->state = ST_SILENCE;
+    vad_data->lastState = ST_VOICE;
+    if (f.p < (vad_data->k0 + vad_data->alfa0 + vad_data->alfa1)){
+      vad_data->state = ST_UNDEF;
+      vad_data->timer = 0;
+    }
     break;
 
   case ST_UNDEF:
+    vad_data->timer++;
+    if(vad_data->lastState==ST_SILENCE){
+      if(f.p < (vad_data->k0 + vad_data->alfa0 + vad_data->alfa1)){
+        vad_data->lastState = ST_UNDEF;
+        vad_data->state = ST_SILENCE;
+      }
+      if((f.p > (vad_data->k0 + vad_data->alfa0 + vad_data->alfa1)) && (vad_data->timer >= vad_data->tV)){
+        vad_data->lastState = ST_UNDEF;
+        vad_data->state = ST_VOICE;
+      }
+    }
+
+    if(vad_data->lastState==ST_VOICE){
+      if(f.p > (vad_data->k0 + vad_data->alfa0)){
+        vad_data->lastState = ST_UNDEF;
+        vad_data->state = ST_VOICE;
+      }
+      if((f.p < (vad_data->k0 + vad_data->alfa0)) && (vad_data->timer >= vad_data->tS)){
+        vad_data->lastState = ST_UNDEF;
+        vad_data->state = ST_SILENCE;
+      }
+    }
+
     break;
-  }
+    }
 
   if (vad_data->state == ST_SILENCE ||
       vad_data->state == ST_VOICE)

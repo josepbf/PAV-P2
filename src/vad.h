@@ -16,6 +16,14 @@ typedef struct {
   float sampling_rate;
   unsigned int frame_length;
   float last_feature; /* for debuggin purposes */
+  float alfa0;
+  float alfa1;
+  float tV; /* Tiempo Voice */ 
+  float tS; /* Tiempo Silence */
+  float timer; /*variable */
+  float nInit;
+  float k0;
+  VAD_STATE lastState;
 } VAD_DATA;
 
 /* Call this function before using VAD: 

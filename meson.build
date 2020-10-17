@@ -1,6 +1,6 @@
 project('Práctica 2 de PAV - detección de actividad vocal', 'c')
 
-src = ['src/main_vad.c', 'src/vad.c']
+src = ['src/main_vad.c', 'src/vad.c', 'src/pav_analysis.c']
 lib = ['-lm', '-lsndfile']
 exe = 'vad'
 
