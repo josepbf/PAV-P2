@@ -140,8 +140,6 @@ for x in range(len(newestList)):
 
 plt.plot(lastesList, 'b-', label='Audio P2')
 plt.legend(loc="upper right")
-plt.xlim(0,440)
-plt.ylim(0,3000)
 plt.grid()
 plt.ylabel('ZCR')
 plt.xlabel('Muestras')

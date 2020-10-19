@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
   for (i=0; i< frame_size; ++i) buffer_zeros[i] = 0.0F;
 
   frame_duration = (float) frame_size/ (float) sf_info.samplerate;
-  last_state = ST_UNDEF;
+  last_state = ST_SILENCE;
 
   for (t = last_t = 0; ; t++) { /* For each frame ... */
     /* End loop when file has finished (or there is an error) */
@@ -87,12 +87,18 @@ int main(int argc, char *argv[]) {
 
     /* TODO: print only SILENCE and VOICE labels */
     /* As it is, it prints UNDEF segments but is should be merge to the proper value */
-    if (state == ST_UNDEF){
-        state = last_state;
+    if (state == ST_MAYBE_SIL){
+      state = last_state;
     }
-    if (state == ST_UNDEF){
-        state = ST_SILENCE;
+    if (state == ST_MAYBE_VOI){
+      state = last_state;
     }
+    // Para garantizar que no hay MAYBEs ST
+    if (state == ST_MAYBE_SIL)
+      state = ST_SILENCE;
+    if (state == ST_MAYBE_VOI)
+      state = ST_VOICE;
+
     if (state != last_state) {
       if (t != last_t)
         fprintf(vadfile, "%.5f\t%.5f\t%s\n", last_t * frame_duration, t * frame_duration, state2str(last_state));

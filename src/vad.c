@@ -54,10 +54,10 @@ VAD_DATA * vad_open(float rate) {
   vad_data->sampling_rate = rate;
   vad_data->frame_length = rate * FRAME_TIME * 1e-3;
   vad_data->lastState = ST_INIT;
-  vad_data->alfa0 = 3;
-  vad_data->alfa1 = 4;
-  vad_data->tS = 3;
-  vad_data->tV = 2;
+  vad_data->alfa0 = 3.55;
+  vad_data->alfa1 = 6.53;
+  vad_data->tS = 5;
+  vad_data->tV = 16;
   vad_data->timer = 0;
   vad_data->k0 = 0;
   vad_data->nInit = 11;
@@ -118,51 +118,51 @@ VAD_STATE vad(VAD_DATA *vad_data, float *x) {
   case ST_SILENCE:
     vad_data->lastState = ST_SILENCE;
     if (f.p > (vad_data->k0 + vad_data->alfa0)){
-      vad_data->state = ST_UNDEF;
+      vad_data->state = ST_MAYBE_VOI;
       vad_data->timer = 0;
     }
     break;
 
   case ST_VOICE:
     vad_data->lastState = ST_VOICE;
-    if (f.p < (vad_data->k0 + vad_data->alfa0 + vad_data->alfa1)){
-      vad_data->state = ST_UNDEF;
+    if (f.p < (vad_data->k0 + vad_data->alfa0 )){
+      vad_data->state = ST_MAYBE_SIL;
       vad_data->timer = 0;
     }
     break;
-
-  case ST_UNDEF:
+  
+  case ST_MAYBE_VOI:
     vad_data->timer++;
-    if(vad_data->lastState==ST_SILENCE){
-      if(f.p < (vad_data->k0 + vad_data->alfa0 + vad_data->alfa1)){
-        vad_data->lastState = ST_UNDEF;
-        vad_data->state = ST_SILENCE;
-      }
-      if((f.p > (vad_data->k0 + vad_data->alfa0 + vad_data->alfa1)) && (vad_data->timer >= vad_data->tV)){
-        vad_data->lastState = ST_UNDEF;
-        vad_data->state = ST_VOICE;
-      }
-    }
+    /*if (f.p < (vad_data->k0 + vad_data->alfa0 ))
+      vad_data->state = ST_SILENCE; */
+    if ((f.p > (vad_data->k0 + vad_data->alfa0 + vad_data->alfa1)) && (vad_data->timer <= vad_data->tV))
+      vad_data->state = ST_VOICE;
+    if (vad_data->timer > vad_data->tV)
+      vad_data->state = ST_SILENCE;
+  break;
 
-    if(vad_data->lastState==ST_VOICE){
-      if(f.p > (vad_data->k0 + vad_data->alfa0)){
-        vad_data->lastState = ST_UNDEF;
-        vad_data->state = ST_VOICE;
-      }
-      if((f.p < (vad_data->k0 + vad_data->alfa0)) && (vad_data->timer >= vad_data->tS)){
-        vad_data->lastState = ST_UNDEF;
-        vad_data->state = ST_SILENCE;
-      }
-    }
+  case ST_MAYBE_SIL:
+  /*
+  vad_data->timer++;
+    if ((f.p < (vad_data->k0 + vad_data->alfa0)) && (vad_data->timer <= vad_data->tS))
+      vad_data->state = ST_SILENCE;
+    if (vad_data->timer > vad_data->tS)
+      vad_data->state = ST_VOICE; */
+  
+    vad_data->timer++;
+    if (f.p > (vad_data->k0 + vad_data->alfa0))
+      vad_data->state = ST_VOICE;
+    if ((f.p < (vad_data->k0 + vad_data->alfa0)) && (vad_data->timer >= vad_data->tS))
+      vad_data->state = ST_SILENCE;
+  
+  break;
 
-    break;
-    }
-
+  }
   if (vad_data->state == ST_SILENCE ||
       vad_data->state == ST_VOICE)
     return vad_data->state;
   else
-    return ST_UNDEF;
+    return ST_MAYBE_VOI;
 }
 
 void vad_show_state(const VAD_DATA *vad_data, FILE *out) {
