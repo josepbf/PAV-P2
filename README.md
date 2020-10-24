@@ -105,27 +105,46 @@ Ejercicios
   continuación, una captura de `wavesurfer` en la que se vea con claridad la señal temporal, el contorno de
   potencia y la tasa de cruces por cero, junto con el etiquetado manual de los segmentos.
 
-No se como incluir todo eso en la misma grafica, en el respositorio imagenes tienes unas quantas capturas 
-pero no las que piden.
+_Una vez más hemos realizado una grabación de voz de (16 kHz, mono)  con pausas internas para determinar
+en qué instantes tenemos voz y silencio/ruido._
+
+_Comenzamos con la visualización de **la señal** mediante *wavesurfer* donde observamos 
+las características más relevantes, *el contorno de potencia*. La tasa de cruces por cero la podemos ver con el script que mostramosa continuación y con elementos de la P1 con `python`._
+
+<img src="image/1_PotenciaSeñal.PNG" width="840" align="center"><br>
+
+_Por otra parte, realizamos el etiquetado manual de los segmentos de silencio(S) y de voz(V) usando
+el panel **transcription**._
+
+<img src="image/2_Etiquetado.PNG" width="840" align="center"><br>
 
 - A la vista de la gráfica, indique qué valores considera adecuados para las magnitudes siguientes:
 
+	_Para la obtención de los valores inciales se ha observado las gráficas de `wavesrufer`. Sin embargo a la hora de maximizar la F-score hemos cambiado los umbrales iniciales que decimos a continuación por otros que nos dan mejores resultados._<br>
+
 	* Incremento del nivel potencia en dB, respecto al nivel correspondiente al silencio inicial, para
-	  estar seguros de que un segmento de señal se corresponde con voz.
-Razonar.
+	estar seguros de que un segmento de señal se corresponde con voz.
+
+		_Se ha detectado que tiene que aumentar aproximadamente 26dB mirando solamente la gráfica._
+
 	* Duración mínima razonable de los segmentos de voz y silencio.
-Razonar.
+
+		_A partir de la señal anterior, obtenemos los valores de la duración mínima que corresponde al segmento de la voz ***voice time = 356ms*** y al segmento de silencio ***silence time = 776ms***._
+
 	* ¿Es capaz de sacar alguna conclusión a partir de la evolución de la tasa de cruces por cero?
 
-Responder a esto y mencionar que hemos hecho un programa en Python usando la libreria Matplotlib 
-para hacer la grafica, aquí el codigo.
+<img src="image/4_ZCR.PNG" width="640" align="center"><br>
+
+
+_Inicialmente no se pueden sacar datos muy concluyentes. Ya que vemos tramos de silencio con un valor muy elevado de ZCR y también tramos con sonidos sordos con mucho ZCR. Y cuando tenemos un valor elevado de ZCR debido a una cosa u otra también tenemos poca potencia. Así que inicialmente podemos decir esto, pero no es información muy valiosa para realizar una mejora sustancial en el **VAD**. Con `PYTHON`, usando la librería `Matplotlib` hemos hecho este script que funciona con el archivo res.txt generado en la primera práctica y genera una gráfica como la anterior.
+._
 
 ```python
 import matplotlib.pyplot as plt
 import numpy as np
 
 newLines = []
-res_txt = open("/home/josep/Escritorio/PAV/P2/res.txt","r")
+res_txt = open("/home/josep/Escritorio/PAV/PAV-P2/python/res.txt","r")
 lines = res_txt.readlines()
 for x in range(len(lines)):
     newLines.append(lines[x].split("\t"))
@@ -152,16 +171,36 @@ plt.show()
 
 - Complete el código de los ficheros de la práctica para implementar un detector de actividad vocal tan
   exacto como sea posible. Tome como objetivo la maximización de la puntuación-F `TOTAL`.
+  
+_Código completado y disponible para descargar arriba. Permite alcanzar una puntuación-F del **93.003%**._
 
 - Inserte una gráfica en la que se vea con claridad la señal temporal, el etiquetado manual y la detección
-  automática conseguida para el fichero grabado al efecto. 
+  automática conseguida para el fichero grabado al efecto.
 
+<img src="image/7_detector.PNG" width="940" align="center"><br>
 
 - Explique, si existen. las discrepancias entre el etiquetado manual y la detección automática.
+
+_En efecto hay ligueras discrepancias, la mayoría producto de tener una duración mínima de los segmentos de silencio muy pequeña en la práctica, pero al aumentar esta se reducía considerablemente la F-score, ya que realizaba las transiciones de voz a silencio demasiado lentas. Así que podemos decir que estas mínimas discrepancias de unos milisegundos son un mal necesario si lo único que se busca maximizar es la F-score, si la métrica a maximizar fuera otra realizaríamos una implementación distinta tratando los tiempos mínimos de forma diferente._
+
+_Para poder visualizadar de una forma más extacta las diferencias entre el etiquetado manual y el del VAD, a continuación se adjunta el resultado del fichero **.lab** y **.vad**._
+
+<br><img src="image/5_transcription.PNG" width="640" align="center"><br>
+
+<img src="image/6_VAD_Auto.PNG" width="640" align="center"><br>
 
 - Evalúe los resultados sobre la base de datos `db.v4` con el script `vad_evaluation.pl` e inserte a 
   continuación las tasas de sensibilidad (*recall*) y precisión para el conjunto de la base de datos (sólo
   el resumen).
+
+_Al realizar está evalución y comprobar el funcionamento de nuestro sistema de detección con la base de datos 
+que nos proporciona. Vemos que hemos obtenido un **93.003%**. A contuación la tasa de sensibilidad y precisión para el conjunto de la base de datos:._
+
+<img src="image/8_evaluación.PNG" width="640" align="center"><br>
+
+_Concluimos que nuestro sistema está preparado para detectar si el segmento es silencio/ruido o
+si el segmento es de voz._<br><br>
+
 
 
 ### Trabajos de ampliación
