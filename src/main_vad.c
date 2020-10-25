@@ -12,6 +12,12 @@
 int main(int argc, char *argv[]) {
   int verbose = 0; /* To show internal state of vad: verbose = DEBUG_VAD; */
 
+  //float alfa0;
+  //float alfa1;
+  //int tS;
+  //int tV;
+  //int nInit;
+
   SNDFILE *sndfile_in, *sndfile_out = 0;
   SF_INFO sf_info;
   FILE *vadfile;
@@ -33,6 +39,11 @@ int main(int argc, char *argv[]) {
   input_wav  = args.input_wav;
   output_vad = args.output_vad;
   output_wav = args.output_wav;
+  float alfa0 = atof(args.alfa0);
+  float alfa1 = atof(args.alfa1);
+  int tS = atoi(args.tS);
+  int tV = atoi(args.tV);
+  int nInit = atoi(args.nInit);
 
   if (input_wav == 0 || output_vad == 0) {
     fprintf(stderr, "%s\n", args.usage_pattern);
@@ -64,7 +75,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  vad_data = vad_open(sf_info.samplerate);
+  vad_data = vad_open(sf_info.samplerate, alfa0, alfa1, tS, tV, nInit);
   /* Allocate memory for buffers */
   frame_size   = vad_frame_size(vad_data);
   buffer       = (float *) malloc(frame_size * sizeof(float));

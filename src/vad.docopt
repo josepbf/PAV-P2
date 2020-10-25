@@ -9,6 +9,11 @@ Options:
    -i FILE, --input-wav=FILE   WAVE file for voice activity detection
    -o FILE, --output-vad=FILE  Label file with the result of VAD
    -w FILE, --output-wav=FILE  WAVE file with silences cleared
+   --alfa0=FLOAT  Umbral de S o V [default: 3.55]
+   --alfa1=FLOAT  Umbral de la histeresis [default: 6.53]
+   --tS=INT  Timer de silencio [default: 5]
+   --tV=INT  Timer de voz [default: 16]
+   --nInit=INT  Timer inicial [default: 11]
    -v, --verbose  Show debug information
    -h, --help     Show this screen
    --version      Show the version of the project

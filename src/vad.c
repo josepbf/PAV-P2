@@ -5,6 +5,7 @@
 #include "vad.h"
 #include "pav_analysis.h"
 
+
 const float FRAME_TIME = 10.0F; /* in ms. */
 
 /* 
@@ -48,19 +49,19 @@ Features compute_features(const float *x, int N, float rate) {
  * DONE: Init the values of vad_data
  */
 
-VAD_DATA * vad_open(float rate) {
+VAD_DATA * vad_open(float rate, float alfa0, float alfa1, int tS, int tV, int nInit) {
   VAD_DATA *vad_data = malloc(sizeof(VAD_DATA));
   vad_data->state = ST_INIT;
   vad_data->sampling_rate = rate;
   vad_data->frame_length = rate * FRAME_TIME * 1e-3;
   vad_data->lastState = ST_INIT;
-  vad_data->alfa0 = 3.55;
-  vad_data->alfa1 = 6.53;
-  vad_data->tS = 5;
-  vad_data->tV = 16;
+  vad_data->alfa0 = alfa0;
+  vad_data->alfa1 = alfa1;
+  vad_data->tS = tS;
+  vad_data->tV = tV;
   vad_data->timer = 0;
   vad_data->k0 = 0;
-  vad_data->nInit = 11;
+  vad_data->nInit = nInit;
   return vad_data;
 }
 
