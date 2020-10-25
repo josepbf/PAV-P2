@@ -225,6 +225,7 @@ si el segmento es de voz._<br><br>
 
 - Si lo desea, puede realizar también algún comentario acerca de la realización de la práctica que
   considere de interés de cara a su evaluación.
+
 _Para responder más correctamente a las preguntas que piden sacar valoes de gráficas de wavesurfer, hemos implementado dos scripts en `PYTHON` usando `Matplotlib`. Reutilizan el fichero `.TXT` generado en la primera práctica. Los scripts de pueden encontrar en **/python**._
 
 ### Antes de entregar la práctica
